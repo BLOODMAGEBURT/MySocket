@@ -35,39 +35,35 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Log.d("abc","start");
-//                String json_str = "abd";
-//
-//                Socket socket = null;
-//                OutputStream output = null;
-//                InputStream input = null;
-//                StringBuffer sb = null;
-//                try {
-//
-//                    socket = new Socket(HOST, PORT);
-//
-//                    output = socket.getOutputStream();
-//                    output.write(("Carson_Ho"+"\n").getBytes("utf-8"));// 把msg信息写入输出流中
-//                    output.flush();
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-                //--------向服务端的写入信息-------------
+
                 mThreadPool.execute(new Runnable() {
                     @Override
                     public void run() {
-                        Socket socket = null;
-                        OutputStream output = null;
-                        InputStream input = null;
-                        StringBuffer sb = null;
-                        try {
-                            socket = new Socket(HOST, PORT);
-                            output = socket.getOutputStream();
-                            output.write(("are"+"\n").getBytes("utf-8"));// 把msg信息写入输出流中
-                            output.flush();
+//                        Socket socket = null;
+//                        OutputStream output = null;
+//                        InputStream input = null;
+//                        StringBuffer sb = null;
+//                        try {
+//                            socket = new Socket(HOST, PORT);
+//                            output = socket.getOutputStream();
+//                            output.write(("are"+"\n").getBytes("utf-8"));// 把msg信息写入输出流中
+//                            output.flush();
+//
+//                        } catch (IOException e) {
+//                            e.printStackTrace();
+//                        }
 
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+                        HttpUtil.requestServer("are you ok?", new CallListener() {
+                            @Override
+                            public void onResult(String jsonresult) {
+                                Log.d("abc",jsonresult);
+                            }
+
+                            @Override
+                            public void onError() {
+
+                            }
+                        });
 
 
                     }
