@@ -13,8 +13,8 @@ import static com.burt.mysocket.ByteUtil.intToBytes;
 
 public class HttpUtil {
 
-    private static final String HOST = "192.168.0.100";//主机地址
-    private static final int PORT = 2222;//端口号
+    private static final String HOST = "192.168.1.81";//主机地址
+    private static final int PORT = 9999;//端口号
 
     //TCP向服务端发送数据
     public static void requestServer(String json, CallListener callListener) {
