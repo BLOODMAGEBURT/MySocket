@@ -8,11 +8,14 @@ import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
+import com.burt.mysocket.view.WaveProgressView;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.charset.Charset;
+import java.text.DecimalFormat;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -27,6 +30,9 @@ public class MainActivity extends AppCompatActivity {
     OutputStream output = null;
     InputStream input = null;
     StringBuffer sb = null;
+    WaveProgressView waveView;
+    TextView textProgress;
+    int num = 50;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,12 +46,23 @@ public class MainActivity extends AppCompatActivity {
     private void initView() {
         AppCompatButton send = findViewById(R.id.btn_send);
 
-        TextView hello = findViewById(R.id.hello);
+        waveView = findViewById(R.id.wave_progress);
+        textProgress = findViewById(R.id.text_progress);
+        waveView.setTextView(textProgress);
+        waveView.setOnAnimationListener(new WaveProgressView.OnAnimationListener() {
+            @Override
+            public String howToChangeText(float interpolatedTime, float updateNum, float maxNum) {
+                DecimalFormat decimalFormat = new DecimalFormat("0.00");
+                String s = decimalFormat.format(interpolatedTime * updateNum / maxNum * 100) + "%";
+                return s;
+            }
 
-        String html = "<div class=\\\"text\\\" style=\\\" text-align:center;\\\"><font size=\\\"4\\\" color=\\\"#666666\\\"><b>您有&nbsp;<font \\r\\ncolor=\\\"#FC5F49\\\">1</font>&nbsp;条额度出让申请</b></font><br><br><font size=\\\"5\\\" color=\\\"#999999\\\">赶快帮助好友提额吧</font></div>";
+            @Override
+            public float howToChangeWaveHeight(float percent, float waveHeight) {
+                return (1-percent)*waveHeight;
+            }
 
-
-        hello.setText(Html.fromHtml(html));
+        });
 
 
         send.setOnClickListener(new View.OnClickListener() {
@@ -53,15 +70,20 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 Log.d("abc", "start");
 
-                mThreadPool.execute(new Runnable() {
-                    @Override
-                    public void run() {
+//                mThreadPool.execute(new Runnable() {
+//                    @Override
+//                    public void run() {
+//
+//                        easyWay();
+//
+////                        complicateWay();
+//                    }
+//                });
 
-                        easyWay();
+                num++;
 
-//                        complicateWay();
-                    }
-                });
+                waveView.setProgressNum(num, 1000);
+
             }
         });
     }
