@@ -33,6 +33,8 @@ public class MainActivity extends AppCompatActivity {
     WaveProgressView waveView;
     TextView textProgress;
     int num = 50;
+    int oldVal = 0;
+    int newVal = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,12 +60,22 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
+            public String changeTextWithDiff(float interpolatedTime, float oldVal, float diff, float updateNum, float maxNum) {
+                DecimalFormat decimalFormat = new DecimalFormat("0.00");
+                String s = decimalFormat.format((interpolatedTime * diff + oldVal) / maxNum * 100) + "%";
+                return s;
+            }
+
+            @Override
             public float howToChangeWaveHeight(float percent, float waveHeight) {
-                return (1-percent)*waveHeight;
+                return (1 - percent) * waveHeight;
             }
 
         });
 
+
+        waveView.setProgressNum(oldVal, num, 1000);
+        oldVal = num;
 
         send.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -80,10 +92,10 @@ public class MainActivity extends AppCompatActivity {
 //                    }
 //                });
 
-                num++;
-
-                waveView.setProgressNum(num, 1000);
-
+                num = num + 2;
+                newVal = num;
+                waveView.setProgressNum(oldVal, newVal, 1000);
+                oldVal = newVal;
             }
         });
     }

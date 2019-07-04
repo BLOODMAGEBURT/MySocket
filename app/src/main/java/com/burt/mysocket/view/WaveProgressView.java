@@ -11,6 +11,7 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.LinearInterpolator;
@@ -19,7 +20,8 @@ import android.widget.TextView;
 
 import com.burt.mysocket.R;
 import com.burt.mysocket.utils.DpOrPxUtils;
-public class WaveProgressView extends View{
+
+public class WaveProgressView extends View {
 
     private Paint circlePaint;//圆形进度框画笔
     private Paint wavePaint;//绘制波浪画笔
@@ -51,23 +53,25 @@ public class WaveProgressView extends View{
 
     private boolean isDrawSecondWave;
 
+    private float oldVal = 0;
+    float diff;
 
     public WaveProgressView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
-        init(context,attrs);
+        init(context, attrs);
     }
 
-    private void init(Context context,AttributeSet attrs){
+    private void init(Context context, AttributeSet attrs) {
         TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.WaveProgressView);
-        waveWidth = typedArray.getDimension(R.styleable.WaveProgressView_wave_width,DpOrPxUtils.dip2px(context,25));
-        waveHeight = typedArray.getDimension(R.styleable.WaveProgressView_wave_height,DpOrPxUtils.dip2px(context,5));
-        waveColor = typedArray.getColor(R.styleable.WaveProgressView_wave_color,Color.GREEN);
-        secondWaveColor = typedArray.getColor(R.styleable.WaveProgressView_second_wave_color,getResources().getColor(R.color.light));
-        bgColor = typedArray.getColor(R.styleable.WaveProgressView_wave_bg_color,Color.GRAY);
+        waveWidth = typedArray.getDimension(R.styleable.WaveProgressView_wave_width, DpOrPxUtils.dip2px(context, 25));
+        waveHeight = typedArray.getDimension(R.styleable.WaveProgressView_wave_height, DpOrPxUtils.dip2px(context, 5));
+        waveColor = typedArray.getColor(R.styleable.WaveProgressView_wave_color, Color.GREEN);
+        secondWaveColor = typedArray.getColor(R.styleable.WaveProgressView_second_wave_color, getResources().getColor(R.color.light));
+        bgColor = typedArray.getColor(R.styleable.WaveProgressView_wave_bg_color, Color.GRAY);
         typedArray.recycle();
 
-        defaultSize = DpOrPxUtils.dip2px(context,100);
-        waveNum =(int) Math.ceil(Double.parseDouble(String.valueOf(defaultSize / waveWidth / 2)));
+        defaultSize = DpOrPxUtils.dip2px(context, 100);
+        waveNum = (int) Math.ceil(Double.parseDouble(String.valueOf(defaultSize / waveWidth / 2)));
         waveMovingDistance = 0;
 
         wavePath = new Path();
@@ -89,10 +93,12 @@ public class WaveProgressView extends View{
         waveProgressAnim = new WaveProgressAnim();
         waveProgressAnim.setAnimationListener(new Animation.AnimationListener() {
             @Override
-            public void onAnimationStart(Animation animation) {}
+            public void onAnimationStart(Animation animation) {
+            }
 
             @Override
-            public void onAnimationEnd(Animation animation) {}
+            public void onAnimationEnd(Animation animation) {
+            }
 
             @Override
             public void onAnimationRepeat(Animation animation) {
@@ -117,11 +123,11 @@ public class WaveProgressView extends View{
         int min = Math.min(width, height);// 获取View最短边的长度
         setMeasuredDimension(min, min);// 强制改View为以最短边为长度的正方形
         viewSize = min;
-        waveNum =(int) Math.ceil(Double.parseDouble(String.valueOf(viewSize / waveWidth / 2)));
+        waveNum = (int) Math.ceil(Double.parseDouble(String.valueOf(viewSize / waveWidth / 2)));
 
     }
 
-    private int measureSize(int defaultSize,int measureSpec) {
+    private int measureSize(int defaultSize, int measureSpec) {
         int result = defaultSize;
         int specMode = View.MeasureSpec.getMode(measureSpec);
         int specSize = View.MeasureSpec.getSize(measureSpec);
@@ -140,41 +146,41 @@ public class WaveProgressView extends View{
         bitmap = Bitmap.createBitmap(viewSize, viewSize, Bitmap.Config.ARGB_8888);
         bitmapCanvas = new Canvas(bitmap);
 
-        bitmapCanvas.drawCircle(viewSize/2, viewSize/2, viewSize/2, circlePaint);
-        bitmapCanvas.drawPath(getWavePath(),wavePaint);
-        if(isDrawSecondWave){
-            bitmapCanvas.drawPath(getSecondWavePath(),secondWavePaint);
+        bitmapCanvas.drawCircle(viewSize / 2, viewSize / 2, viewSize / 2, circlePaint);
+        bitmapCanvas.drawPath(getWavePath(), wavePaint);
+        if (isDrawSecondWave) {
+            bitmapCanvas.drawPath(getSecondWavePath(), secondWavePaint);
         }
 
         canvas.drawBitmap(bitmap, 0, 0, null);
     }
 
-    private Path getWavePath(){
+    private Path getWavePath() {
 //        float changeWaveHeight = (1 - percent) * waveHeight;
         float changeWaveHeight = waveHeight;
-        if(onAnimationListener!=null){
+        if (onAnimationListener != null) {
             changeWaveHeight =
-                    onAnimationListener.howToChangeWaveHeight(percent,waveHeight) == 0 && percent < 1
-                            ?waveHeight
-                            :onAnimationListener.howToChangeWaveHeight(percent,waveHeight);
+                    onAnimationListener.howToChangeWaveHeight(percent, waveHeight) == 0 && percent < 1
+                            ? waveHeight
+                            : onAnimationListener.howToChangeWaveHeight(percent, waveHeight);
         }
 
         wavePath.reset();
 
         //移动到右上方，也就是p0点
-        wavePath.moveTo(viewSize, (1-percent)*viewSize);
+        wavePath.moveTo(viewSize, (1 - percent) * viewSize);
         //移动到右下方，也就是p1点
         wavePath.lineTo(viewSize, viewSize);
         //移动到左下边，也就是p2点
         wavePath.lineTo(0, viewSize);
         //移动到左上方，也就是p3点
         //wavePath.lineTo(0, (1-percent)*viewSize);
-        wavePath.lineTo(-waveMovingDistance, (1-percent)*viewSize);
+        wavePath.lineTo(-waveMovingDistance, (1 - percent) * viewSize);
 
         //从p3开始向p0方向绘制波浪曲线
-        for (int i=0;i<waveNum*2;i++){
-            wavePath.rQuadTo(waveWidth/2, changeWaveHeight, waveWidth, 0);
-            wavePath.rQuadTo(waveWidth/2, -changeWaveHeight, waveWidth, 0);
+        for (int i = 0; i < waveNum * 2; i++) {
+            wavePath.rQuadTo(waveWidth / 2, changeWaveHeight, waveWidth, 0);
+            wavePath.rQuadTo(waveWidth / 2, -changeWaveHeight, waveWidth, 0);
         }
 
         //将path封闭起来
@@ -182,31 +188,31 @@ public class WaveProgressView extends View{
         return wavePath;
     }
 
-    private Path getSecondWavePath(){
+    private Path getSecondWavePath() {
 //        float changeWaveHeight = (1 - percent) * waveHeight;
         float changeWaveHeight = waveHeight;
-        if(onAnimationListener!=null){
+        if (onAnimationListener != null) {
             changeWaveHeight =
-                    onAnimationListener.howToChangeWaveHeight(percent,waveHeight) == 0 && percent < 1
-                            ?waveHeight
-                            :onAnimationListener.howToChangeWaveHeight(percent,waveHeight);
+                    onAnimationListener.howToChangeWaveHeight(percent, waveHeight) == 0 && percent < 1
+                            ? waveHeight
+                            : onAnimationListener.howToChangeWaveHeight(percent, waveHeight);
         }
 
         wavePath.reset();
 
         //移动到左上方，也就是p3点
-        wavePath.moveTo(0, (1-percent)*viewSize);
+        wavePath.moveTo(0, (1 - percent) * viewSize);
         //移动到左下边，也就是p2点
         wavePath.lineTo(0, viewSize);
         //移动到右下方，也就是p1点
         wavePath.lineTo(viewSize, viewSize);
         //移动到右上方，也就是p0点
-        wavePath.lineTo(viewSize + waveMovingDistance, (1-percent)*viewSize);
+        wavePath.lineTo(viewSize + waveMovingDistance, (1 - percent) * viewSize);
 
         //从p0开始向p3方向绘制波浪曲线
-        for (int i=0;i<waveNum*2;i++){
-            wavePath.rQuadTo(-waveWidth/2, changeWaveHeight, -waveWidth, 0);
-            wavePath.rQuadTo(-waveWidth/2, -changeWaveHeight, -waveWidth, 0);
+        for (int i = 0; i < waveNum * 2; i++) {
+            wavePath.rQuadTo(-waveWidth / 2, changeWaveHeight, -waveWidth, 0);
+            wavePath.rQuadTo(-waveWidth / 2, -changeWaveHeight, -waveWidth, 0);
         }
 
         //将path封闭起来
@@ -216,17 +222,22 @@ public class WaveProgressView extends View{
 
     public class WaveProgressAnim extends Animation {
 
-        public WaveProgressAnim(){}
+        public WaveProgressAnim() {
+        }
 
         @Override
         protected void applyTransformation(float interpolatedTime, Transformation t) {
             super.applyTransformation(interpolatedTime, t);
-            if(percent < progressNum / maxNum){
-                percent = interpolatedTime * progressNum / maxNum;
-                if(textView !=null && onAnimationListener!=null){
-                    textView.setText(onAnimationListener.howToChangeText(interpolatedTime, progressNum,maxNum));
+
+            if (percent != progressNum / maxNum) {
+//                percent  = interpolatedTime * progressNum / maxNum;
+                percent = (interpolatedTime * diff + oldVal) / maxNum; // 连续递增or递减
+                if (textView != null && onAnimationListener != null) {
+//                    textView.setText(onAnimationListener.howToChangeText(interpolatedTime, progressNum,maxNum));
+                    textView.setText(onAnimationListener.changeTextWithDiff(interpolatedTime, oldVal, diff, progressNum, maxNum));
                 }
             }
+
             waveMovingDistance = interpolatedTime * waveNum * waveWidth * 2;
             postInvalidate();
         }
@@ -234,13 +245,14 @@ public class WaveProgressView extends View{
 
     /**
      * 设置进度条数值
+     *
      * @param progressNum 进度条数值
-     * @param time 动画持续时间
+     * @param time        动画持续时间
      */
-    public void setProgressNum(float progressNum, int time) {
+    public void setProgressNum(float oldVal, float progressNum, int time) {
         this.progressNum = progressNum;
-
-        percent = 0;
+        this.oldVal = oldVal;
+        diff = progressNum - oldVal;
         waveProgressAnim.setDuration(time);
         waveProgressAnim.setRepeatCount(-1);
         waveProgressAnim.setInterpolator(new LinearInterpolator());
@@ -249,6 +261,7 @@ public class WaveProgressView extends View{
 
     /**
      * 是否绘制第二层波浪
+     *
      * @param isDrawSecondWave
      */
     public void setDrawSecondWave(boolean isDrawSecondWave) {
@@ -257,6 +270,7 @@ public class WaveProgressView extends View{
 
     /**
      * 设置显示文字的TextView
+     *
      * @param textView
      */
     public void setTextView(TextView textView) {
@@ -267,16 +281,30 @@ public class WaveProgressView extends View{
 
         /**
          * 如何处理要显示的文字内容
+         *
          * @param interpolatedTime 从0渐变成1,到1时结束动画
-         * @param updateNum 进度条数值
-         * @param maxNum 进度条最大值
+         * @param updateNum        进度条数值
+         * @param maxNum           进度条最大值
          * @return
          */
         String howToChangeText(float interpolatedTime, float updateNum, float maxNum);
 
         /**
+         * 如何处理要显示的文字内容,连续 递增or递减
+         *
+         * @param interpolatedTime 从0渐变成1,到1时结束动画
+         * @param updateNum        进度条数值
+         * @param maxNum           进度条最大值
+         * @param oldVal           上一个进度值
+         * @param diff             最新值与上一个进度值的差值
+         * @return
+         */
+        String changeTextWithDiff(float interpolatedTime, float oldVal, float diff, float updateNum, float maxNum);
+
+        /**
          * 如何处理波浪高度
-         * @param percent 进度占比
+         *
+         * @param percent    进度占比
          * @param waveHeight 波浪高度
          * @return
          */
