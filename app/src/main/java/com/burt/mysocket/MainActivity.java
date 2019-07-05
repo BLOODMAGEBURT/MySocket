@@ -1,5 +1,6 @@
 package com.burt.mysocket;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.AppCompatButton;
@@ -35,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
     int num = 50;
     int oldVal = 0;
     int newVal = 0;
+    private AppCompatButton toTest;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +49,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void initView() {
         AppCompatButton send = findViewById(R.id.btn_send);
+
+        toTest = findViewById(R.id.btn_test);
 
         waveView = findViewById(R.id.wave_progress);
         textProgress = findViewById(R.id.text_progress);
@@ -98,6 +102,15 @@ public class MainActivity extends AppCompatActivity {
                 oldVal = newVal;
             }
         });
+
+        toTest.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                startActivity(new Intent(MainActivity.this,TestActivity.class));
+            }
+        });
+
     }
 
     private void complicateWay() {
