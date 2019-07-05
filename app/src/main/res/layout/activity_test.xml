@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".TestActivity">
+
+    <android.support.v7.widget.LinearLayoutCompat
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <android.support.v7.widget.AppCompatButton
+            android:id="@+id/btn_test"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="test" />
+
+        <android.support.v7.widget.AppCompatButton
+            android:id="@+id/btn_con"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="connect" />
+
+        <android.support.v7.widget.AppCompatButton
+            android:id="@+id/btn_send"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="send_msg" />
+
+    </android.support.v7.widget.LinearLayoutCompat>
+
+
+    <RelativeLayout
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="10dp">
+
+        <com.burt.mysocket.view.WaveProgressView
+            android:id="@+id/wave_progress"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:wave_bg_color="@color/gray_light"
+            app:wave_color="@color/blue_light"
+            app:wave_height="8dp"
+            app:wave_width="40dp" />
+
+        <TextView
+            android:id="@+id/text_progress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:textColor="@color/textColorPrimary"
+            android:textSize="13dp"
+            android:textStyle="bold" />
+    </RelativeLayout>
+</android.support.v7.widget.LinearLayoutCompat>
