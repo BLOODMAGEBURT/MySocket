@@ -1,24 +1,30 @@
 package com.burt.mysocket;
 
 import android.content.Intent;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.AppCompatButton;
-import android.text.Html;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.burt.mysocket.view.WaveProgressView;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.ref.WeakReference;
+import java.lang.reflect.Array;
 import java.net.Socket;
 import java.nio.charset.Charset;
 import java.text.DecimalFormat;
+import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -33,10 +39,12 @@ public class MainActivity extends AppCompatActivity {
     StringBuffer sb = null;
     WaveProgressView waveView;
     TextView textProgress;
-    int num = 50;
+    int num = 90;
     int oldVal = 0;
     int newVal = 0;
     private AppCompatButton toTest;
+
+    private final MyHandler handler = new MyHandler(this);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,20 +94,16 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 Log.d("abc", "start");
 
-//                mThreadPool.execute(new Runnable() {
-//                    @Override
-//                    public void run() {
-//
-//                        easyWay();
-//
-////                        complicateWay();
-//                    }
-//                });
+                mThreadPool.execute(new Runnable() {
+                    @Override
+                    public void run() {
 
-                num = num + 2;
-                newVal = num;
-                waveView.setProgressNum(oldVal, newVal, 1000);
-                oldVal = newVal;
+                        easyWay();
+
+//                        complicateWay();
+                    }
+                });
+
             }
         });
 
@@ -107,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                startActivity(new Intent(MainActivity.this,TestActivity.class));
+                startActivity(new Intent(MainActivity.this, TestActivity.class));
             }
         });
 
@@ -135,18 +139,12 @@ public class MainActivity extends AppCompatActivity {
         try {
 
             socket = new Socket(HOST, PORT);
-            Log.d("abc", "ready to connect");
-
-
-            Log.d("easyWay", "easyWay: connected successful");
-
             output = socket.getOutputStream();
             output.write(("are you ok ?" + "\n").getBytes("utf-8"));// 把msg信息写入输出流中
             output.flush();
 
             //--------接收服务端的返回信息-------------
             socket.shutdownOutput(); // 一定要加上这句，否则收不到来自服务器端的消息返回 ，意思就是结束msg信息的写入
-            Log.d("easyWay", "i am 1 ");
             input = socket.getInputStream();
             byte[] b = new byte[1024];
             int len;
@@ -154,14 +152,82 @@ public class MainActivity extends AppCompatActivity {
             while ((len = input.read(b)) != -1) {
                 sb.append(new String(b, 0, len, Charset.forName("UTF-8")));// 得到返回信息
             }
-            Log.d("easyWay", "得到返回信息: " + sb.toString());
+            Message msg = handler.obtainMessage();
+            msg.what = 2;
+            Bundle bundle = new Bundle();
+            bundle.putString("receivedMsg", sb.toString());  //往Bundle中存放数据
+            msg.setData(bundle);//mes利用Bundle传递数据
+            handler.sendMessage(msg);
 
+            socket.close();
         } catch (IOException e) {
-            Log.d("wrong", "there is something wrong1");
             e.printStackTrace();
-            Log.d("wrong", "there is something wrong2");
         }
 
     }
 
+
+    static class MyHandler extends Handler {
+
+        float oldVal = 90;
+        float newVal = 0;
+        private final WeakReference<MainActivity> mActivity;
+
+        public MyHandler(MainActivity activity) {
+            mActivity = new WeakReference<>(activity);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            System.out.println(msg);
+            if (mActivity.get() == null) {
+                return;
+            }
+            MainActivity activity = mActivity.get();
+
+            switch (msg.what) {
+                case 0:
+                    Toast.makeText(activity, "连接成功", Toast.LENGTH_SHORT).show();
+                    break;
+                case 1:
+                    Toast.makeText(activity, "连接断开", Toast.LENGTH_SHORT).show();
+                    break;
+                case 2:
+
+                    String receivedMsg = msg.getData().getString("receivedMsg");//接受msg传递过来的参数
+
+                    int[] formatedMsg = formatTheMsg(receivedMsg.replace("{", "").replace("}", ""));
+
+                    newVal = (float) (formatedMsg[2] - formatedMsg[3]) / (float) (formatedMsg[4] - formatedMsg[3]) * 100;
+                    activity.waveView.setProgressNum(oldVal, newVal, 5000);
+                    oldVal = newVal;
+
+                    Toast.makeText(activity, Arrays.toString(formatedMsg), Toast.LENGTH_SHORT).show();
+                    break;
+            }
+        }
+
+        private int[] formatTheMsg(String receivedMsg) {
+
+            //正则表达式，用于匹配非数字串，+号用于匹配出多个非数字串。
+            String regex = "[^0-9]+";
+            Pattern pattern = Pattern.compile(regex);
+            //用定义好的正则表达式拆分字符串，把字符串中的数字留出来
+            String[] str = pattern.split(receivedMsg);
+            Log.d("abd", "formatTheMsg: " + Arrays.toString(str));
+            // 转换为 int 数组
+            int[] intTemp = new int[str.length];
+            for (int i = 0; i < str.length; i++) {
+                intTemp[i] = Integer.parseInt(str[i]);
+            }
+            return intTemp;
+        }
+    }
+
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        handler.removeCallbacksAndMessages(null);
+    }
 }

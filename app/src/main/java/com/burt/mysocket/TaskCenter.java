@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.nio.charset.Charset;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -25,6 +26,8 @@ public class TaskCenter {
     private OutputStream outputStream;
     //    Socket输入流
     private InputStream inputStream;
+    StringBuffer sb = null;
+
     // 使用线程池
     private ExecutorService mThreadPool;
 
@@ -68,7 +71,6 @@ public class TaskCenter {
                         outputStream = socket.getOutputStream();
                         inputStream = socket.getInputStream();
                         receive();
-                        Log.i(TAG, "连接成功");
                     } else {
                         Log.i(TAG, "连接失败");
                         if (onServerDisconnectedListener != null) {
@@ -92,25 +94,39 @@ public class TaskCenter {
      */
     private void receive() {
         while (isConnected()) {
-            try {
-                /**得到的是16进制数，需要进行解析*/
+             try {
+            /* *得到的是16进制数，需要进行解析*/
                 byte[] bt = new byte[1024];
 //                获取接收到的字节和字节数
                 int length = inputStream.read(bt);
 //                获取正确的字节
-                byte[] bs = new byte[length];
-                System.arraycopy(bt, 0, bs, 0, length);
+//                byte[] bs = new byte[length];
+//                System.arraycopy(bt, 0, bs, 0, length);
+//
+//                String str = new String(bs, "UTF-8");
 
-                String str = new String(bs, "UTF-8");
-                if (str != null) {
+
+                 byte[] b = new byte[1024];
+                 int len;
+                 sb = new StringBuffer();
+                 while ((len = inputStream.read(b)) != -1) {
+                     sb.append(new String(b, 0, len, Charset.forName("UTF-8")));// 得到返回信息
+                 }
+
+
+
+                if (sb.toString() != null) {
                     if (onReceivedListener != null) {
-                        onReceivedListener.onReceive(str);
+                        Log.d("easyWay", "得到返回信息: " + sb.toString());
+                        onReceivedListener.onReceive(sb.toString());
                     }
                 }
-                Log.i(TAG, "接收成功");
             } catch (IOException e) {
                 Log.i(TAG, "接收失败");
             }
+
+
+
         }
     }
 

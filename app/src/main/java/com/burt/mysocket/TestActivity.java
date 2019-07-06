@@ -1,8 +1,11 @@
 package com.burt.mysocket;
 
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.AppCompatButton;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -24,11 +27,31 @@ public class TestActivity extends AppCompatActivity implements View.OnClickListe
     private AppCompatButton btn_test;
     private AppCompatButton btn_con;
     private AppCompatButton btn_send;
+    private Handler handler;
+    String receivedMessage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_test);
+
+        handler = new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                switch (msg.what) {
+                    case 0:
+                        Toast.makeText(getApplicationContext(), "连接成功", Toast.LENGTH_SHORT).show();
+                        break;
+                    case 1:
+                        Toast.makeText(getApplicationContext(), "连接断开", Toast.LENGTH_SHORT).show();
+                        break;
+                    case 2:
+//                        Toast.makeText(getApplicationContext(), receivedMessage, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(), "收到消息", Toast.LENGTH_SHORT).show();
+                        break;
+                }
+            }
+        };
 
         // 初始化线程池
         mThreadPool = Executors.newCachedThreadPool();
@@ -79,21 +102,31 @@ public class TestActivity extends AppCompatActivity implements View.OnClickListe
         TaskCenter.getInstance().setOnServerConnectedListener(new TaskCenter.OnServerConnectedListener() {
             @Override
             public void onConnected() {
-//                Toast.makeText(getApplicationContext(), "连接成功", Toast.LENGTH_SHORT).show();
+                Message msg = Message.obtain();
+                msg.what = 0;
+                handler.sendMessage(msg);
             }
         });
 
         TaskCenter.getInstance().setOnServerDisconnectedListener(new TaskCenter.OnServerDisconnectedListener() {
             @Override
             public void onDisconnected(IOException e) {
-//                Toast.makeText(getApplicationContext(), "连接断开", Toast.LENGTH_SHORT).show();
+                Message msg = Message.obtain();
+                msg.what = 1;
+                handler.sendMessage(msg);
             }
         });
 
         TaskCenter.getInstance().setOnReceivedListener(new TaskCenter.OnReceivedListener() {
             @Override
             public void onReceive(String receivedMessage) {
-//                Toast.makeText(getApplicationContext(), receivedMessage, Toast.LENGTH_SHORT).show();
+//                receivedMessage = receivedmsg;
+
+//                Message msg = Message.obtain();
+//                msg.what = 2;
+//                handler.sendMessage(msg);
+                Log.d("abc", "onReceive: "+receivedMessage);
+
             }
         });
 
@@ -125,11 +158,13 @@ public class TestActivity extends AppCompatActivity implements View.OnClickListe
             TaskCenter.getInstance().send("it will be good".getBytes("utf-8"));
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
-            Toast.makeText(getApplicationContext(), "字符编码异常", Toast.LENGTH_SHORT).show();
         }
     }
 
     private void connect() {
         TaskCenter.getInstance().connect("192.168.1.145", 9999);
     }
+
+
+
 }
