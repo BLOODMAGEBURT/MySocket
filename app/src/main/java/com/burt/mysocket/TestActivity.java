@@ -29,6 +29,7 @@ public class TestActivity extends AppCompatActivity implements View.OnClickListe
     private AppCompatButton btn_send;
     private Handler handler;
     String receivedMessage;
+    private View btn_if;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,6 +64,8 @@ public class TestActivity extends AppCompatActivity implements View.OnClickListe
         btn_test = findViewById(R.id.btn_test);
         btn_con = findViewById(R.id.btn_con);
         btn_send = findViewById(R.id.btn_send);
+        btn_if = findViewById(R.id.btn_if);
+
 
         waveView = findViewById(R.id.wave_progress);
         textProgress = findViewById(R.id.text_progress);
@@ -98,6 +101,7 @@ public class TestActivity extends AppCompatActivity implements View.OnClickListe
         btn_test.setOnClickListener(this);
         btn_con.setOnClickListener(this);
         btn_send.setOnClickListener(this);
+        btn_if.setOnClickListener(this);
 
         TaskCenter.getInstance().setOnServerConnectedListener(new TaskCenter.OnServerConnectedListener() {
             @Override
@@ -145,8 +149,19 @@ public class TestActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.btn_test:
                 test();
                 break;
+            case R.id.btn_if:
+                ifConnect();
+                break;
         }
 
+    }
+
+    private void ifConnect() {
+        if (TaskCenter.getInstance().isConnected()) {
+            Log.d("aaa", "ifConnect: 连接着");
+        }else {
+            Log.d("aaa", "ifConnect: 已断开");
+        }
     }
 
     private void test() {
@@ -162,7 +177,7 @@ public class TestActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void connect() {
-        TaskCenter.getInstance().connect("192.168.1.145", 9999);
+        TaskCenter.getInstance().connect("192.168.1.81", 9999);
     }
 
 

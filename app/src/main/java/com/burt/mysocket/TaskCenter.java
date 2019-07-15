@@ -61,7 +61,7 @@ public class TaskCenter {
             public void run() {
                 try {
                     socket = new Socket(ipAddress, port);
-//                    socket.setSoTimeout ( 2 * 1000 );//设置超时时间
+//                    socket.setSoTimeout ( 3 * 1000 );//设置超时时间
                     if (isConnected()) {
                         TaskCenter.getInstance().ipAddress = ipAddress;
                         TaskCenter.getInstance().port = port;
@@ -96,16 +96,16 @@ public class TaskCenter {
         while (isConnected()) {
              try {
             /* *得到的是16进制数，需要进行解析*/
-                byte[] bt = new byte[1024];
+//                byte[] bt = new byte[1024];
 //                获取接收到的字节和字节数
-                int length = inputStream.read(bt);
+//                int length = inputStream.read(bt);
 //                获取正确的字节
 //                byte[] bs = new byte[length];
 //                System.arraycopy(bt, 0, bs, 0, length);
 //
 //                String str = new String(bs, "UTF-8");
 
-
+                 Log.d("easyWay", "得到返回信息: 1111");
                  byte[] b = new byte[1024];
                  int len;
                  sb = new StringBuffer();
@@ -114,7 +114,7 @@ public class TaskCenter {
                  }
 
 
-
+                 Log.d("easyWay", "得到返回信息: " + sb.toString());
                 if (sb.toString() != null) {
                     if (onReceivedListener != null) {
                         Log.d("easyWay", "得到返回信息: " + sb.toString());
@@ -122,7 +122,8 @@ public class TaskCenter {
                     }
                 }
             } catch (IOException e) {
-                Log.i(TAG, "接收失败");
+                 Log.d(TAG, "接收失败1: "+ e.toString());
+                Log.i(TAG, "接收失败2");
             }
 
 

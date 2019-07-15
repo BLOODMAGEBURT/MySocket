@@ -1,65 +1,118 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v7.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity"
-    android:orientation="vertical">
-
-    <TextView
-        android:id="@+id/hello"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!"
-        />
-    <android.support.v7.widget.AppCompatButton
-        android:id="@+id/btn_con"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:text="连接测试"/>
-    <android.support.v7.widget.AppCompatButton
-        android:id="@+id/btn_ready"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:text="准备"/>
-    <android.support.v7.widget.AppCompatButton
-        android:id="@+id/btn_start"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:text="运行"/>
-    <android.support.v7.widget.AppCompatButton
-        android:id="@+id/btn_test"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:text="to_test"/>
+    android:background="@drawable/bg">
 
     <RelativeLayout
-        android:layout_width="100dp"
-        android:layout_height="100dp"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
         android:layout_gravity="center_horizontal"
-        android:layout_marginTop="10dp">
+        android:layout_centerInParent="true"
+        >
+
         <com.burt.mysocket.view.WaveProgressView
             android:id="@+id/wave_progress"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:wave_height="8dp"
-            app:wave_width="40dp"
+            app:wave_bg_color="@color/gray_light"
             app:wave_color="@color/blue_light"
-            app:wave_bg_color="@color/gray_light"/>
+            app:wave_height="8dp"
+            app:wave_width="40dp" />
+
         <TextView
             android:id="@+id/text_progress"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
             android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
             android:textColor="@color/textColorPrimary"
             android:textSize="13dp"
-            android:textStyle="bold"/>
+            android:textStyle="bold" />
     </RelativeLayout>
 
-</android.support.v7.widget.LinearLayoutCompat>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="20dp"
+        >
+
+        <android.support.v7.widget.LinearLayoutCompat
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginTop="10dip"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+            <android.support.v7.widget.AppCompatButton
+                android:id="@+id/btn_con"
+                android:layout_width="@dimen/btn_default"
+                android:layout_height="@dimen/btn_default"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/test_btn" />
+            <TextView
+                android:id="@+id/tv_con"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="15dp"
+                android:textColor="@color/white_translucent"
+                android:text="测试连接"/>
+        </android.support.v7.widget.LinearLayoutCompat>
+
+        <android.support.v7.widget.LinearLayoutCompat
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginTop="10dip"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+            <android.support.v7.widget.AppCompatButton
+                android:id="@+id/btn_ready"
+                android:layout_width="@dimen/btn_default"
+                android:layout_height="@dimen/btn_default"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/ready_btn" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="15dp"
+                android:textColor="@color/white_translucent"
+                android:text="准备"/>
+        </android.support.v7.widget.LinearLayoutCompat>
+
+        <android.support.v7.widget.LinearLayoutCompat
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginTop="10dip"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            >
+            <android.support.v7.widget.AppCompatButton
+                android:id="@+id/btn_start"
+                android:layout_width="@dimen/btn_default"
+                android:layout_height="@dimen/btn_default"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/go_btn" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="15dp"
+                android:textColor="@color/white_translucent"
+                android:text="运行"/>
+        </android.support.v7.widget.LinearLayoutCompat>
+
+        <android.support.v7.widget.AppCompatButton
+            android:id="@+id/btn_test"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/test128"
+            android:visibility="gone"/>
+    </LinearLayout>
+</RelativeLayout>

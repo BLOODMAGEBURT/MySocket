@@ -23,6 +23,8 @@ import java.net.SocketAddress;
 import java.nio.charset.Charset;
 import java.text.DecimalFormat;
 import java.util.Arrays;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Pattern;
@@ -49,6 +51,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private String Ready = "@Set_Mod3!";
     private String Start = "@Set_Mod5!";
 
+    private Boolean isRuning = true; // 是否在注射中
 
     private AppCompatButton toTest;
 
@@ -56,6 +59,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static AppCompatButton connect;
     private AppCompatButton ready;
     private AppCompatButton start;
+    private Timer timer;
+    private TimerTask alarmTask;
+    private TextView tv_con;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +76,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         connect = findViewById(R.id.btn_con);
         ready = findViewById(R.id.btn_ready);
         start = findViewById(R.id.btn_start);
+        tv_con = findViewById(R.id.tv_con); // 测试连接
 
         toTest = findViewById(R.id.btn_test);
         waveView = findViewById(R.id.wave_progress);
@@ -112,7 +119,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.btn_con:
-                connect.setText("连接中…");
+                tv_con.setText("连接中…");
                 connect();
 
                 break;
@@ -234,39 +241,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void getNow() {
-        mThreadPool.execute(new Runnable() {
-            @Override
-            public void run() {
+//        mThreadPool.execute();
+    }
 
-                try {
-                    socket = new Socket(HOST, PORT);
-                    output = socket.getOutputStream();
-//            output.write((Now + "\n").getBytes("utf-8"));// 把msg信息写入输出流中
-                    output.write((Now).getBytes("utf-8"));// 把msg信息写入输出流中
-                    output.flush();
+    private void getNowLoop() {
 
-                    //--------接收服务端的返回信息-------------
-                    socket.shutdownOutput(); // 一定要加上这句，否则收不到来自服务器端的消息返回 ，意思就是结束msg信息的写入
-                    input = socket.getInputStream();
-                    byte[] b = new byte[1024];
-                    int len;
-                    sb = new StringBuffer();
-                    while ((len = input.read(b)) != -1) {
-                        sb.append(new String(b, 0, len, Charset.forName("UTF-8")));// 得到返回信息
-                    }
-                    Message msg = handler.obtainMessage();
-                    msg.what = 3;
-                    Bundle bundle = new Bundle();
-                    bundle.putString("nowMsg", sb.toString());  //往Bundle中存放数据
-                    msg.setData(bundle);//mes利用Bundle传递数据
-                    handler.sendMessage(msg);
+        timer = new Timer();
+        alarmTask = new AlarmTask();
 
-                    socket.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
+        timer.schedule(alarmTask, 0, 2 * 1000);//0毫秒后每2秒执行该任务一次
     }
 
     private void complicateWay() {
@@ -308,7 +291,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 case 0:
                     String connectedMsg = msg.getData().getString("connectMsg");//接受msg传递过来的参数
                     Toast.makeText(activity, connectedMsg, Toast.LENGTH_LONG).show();
-                    connect.setText("连接");
+                    tv_con.setText("测试连接");
                     break;
                 case 1:
                     String readyMsg = msg.getData().getString("readyMsg");//接受msg传递过来的参数
@@ -318,13 +301,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     String startMsg = msg.getData().getString("startMsg");//接受msg传递过来的参数
                     Toast.makeText(activity, startMsg, Toast.LENGTH_SHORT).show();
 
-                    getNow();
+                    getNowLoop();
 
                     break;
 
                 case 3:
                     String receivedMsg = msg.getData().getString("nowMsg");//接受msg传递过来的参数
-                    Log.d("abc", "receivedMsg:"+ receivedMsg);
+                    Log.d("abc", "receivedMsg:" + receivedMsg);
                     int[] formatedMsg = formatTheMsg(receivedMsg.replace("{", "").replace("}", ""));
 
                     newVal = (float) (formatedMsg[2] - formatedMsg[3]) / (float) (formatedMsg[4] - formatedMsg[3]) * 100;
@@ -335,7 +318,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     break;
             }
         }
-
 
 
         private int[] formatTheMsg(String receivedMsg) {
@@ -360,4 +342,45 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onDestroy();
         handler.removeCallbacksAndMessages(null);
     }
+
+    public class AlarmTask extends TimerTask {
+        @Override
+        public void run() {
+            mThreadPool.execute(new Runnable() {
+                @Override
+                public void run() {
+
+                    try {
+                        socket = new Socket(HOST, PORT);
+                        output = socket.getOutputStream();
+//            output.write((Now + "\n").getBytes("utf-8"));// 把msg信息写入输出流中
+                        output.write((Now).getBytes("utf-8"));// 把msg信息写入输出流中
+                        output.flush();
+
+                        //--------接收服务端的返回信息-------------
+                        socket.shutdownOutput(); // 一定要加上这句，否则收不到来自服务器端的消息返回 ，意思就是结束msg信息的写入
+                        input = socket.getInputStream();
+                        byte[] b = new byte[1024];
+                        int len;
+                        sb = new StringBuffer();
+                        while ((len = input.read(b)) != -1) {
+                            sb.append(new String(b, 0, len, Charset.forName("UTF-8")));// 得到返回信息
+                        }
+                        Message msg = handler.obtainMessage();
+                        msg.what = 3;
+                        Bundle bundle = new Bundle();
+                        bundle.putString("nowMsg", sb.toString());  //往Bundle中存放数据
+                        msg.setData(bundle);//mes利用Bundle传递数据
+                        handler.sendMessage(msg);
+
+                        socket.close();
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
+    }
+
 }
