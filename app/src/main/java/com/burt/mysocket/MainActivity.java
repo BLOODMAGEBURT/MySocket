@@ -10,9 +10,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.burt.mysocket.view.WaveProgressView;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -62,6 +60,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Timer timer;
     private TimerTask alarmTask;
     private TextView tv_con;
+    private TextView tv_now;
+    private TextView tv_ready;
+    private TextView tv_close;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,6 +78,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         ready = findViewById(R.id.btn_ready);
         start = findViewById(R.id.btn_start);
         tv_con = findViewById(R.id.tv_con); // 测试连接
+
+        tv_now = findViewById(R.id.tv_now);
+        tv_ready = findViewById(R.id.tv_ready);
+        tv_close = findViewById(R.id.tv_close);
 
         toTest = findViewById(R.id.btn_test);
         waveView = findViewById(R.id.wave_progress);
@@ -121,7 +126,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.btn_con:
                 tv_con.setText("连接中…");
                 connect();
-
                 break;
             case R.id.btn_ready:
                 Toast.makeText(getApplicationContext(), "准备", Toast.LENGTH_SHORT).show();
@@ -136,7 +140,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
         }
     }
-
 
     private void connect() {
         mThreadPool.execute(new Runnable() {
@@ -328,7 +331,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             //用定义好的正则表达式拆分字符串，把字符串中的数字留出来
             String[] str = pattern.split(receivedMsg);
             Log.d("abd", "formatTheMsg: " + Arrays.toString(str));
-            // 转换为 int 数组
+            // 转换为 int 数组  {2,0,02345,01523,54321}
             int[] intTemp = new int[str.length];
             for (int i = 0; i < str.length; i++) {
                 intTemp[i] = Integer.parseInt(str[i]);
