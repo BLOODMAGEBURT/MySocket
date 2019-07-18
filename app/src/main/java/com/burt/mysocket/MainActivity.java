@@ -7,6 +7,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.AppCompatButton;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -29,10 +30,12 @@ import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
-    private static final String HOST = "192.168.1.81";//主机地址
-    private static final int PORT = 9999;//端口号
+    private static final String HOST = "192.168.2.1";//主机地址
+    private static final int PORT = 2222;//端口号
     // 为了方便展示,此处直接采用线程池进行线程管理,而没有一个个开线程
     private ExecutorService mThreadPool;
+    // 记录第一次点击返回键 的时间
+    private long firstTime=0;
 
     Socket socket = null;
     OutputStream output = null;
@@ -44,7 +47,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     int oldVal = 0;
     int newVal = 0;
 
-    private int status = 0;
+    /*
+    1：设备初始化中
+	2：设备初始化完成（main_pwm_now=1000）
+	3：设备准备中
+	4：设备准备完成（main_pwm_now=main_set_pwm_on）
+	5：设备运行中
+	6：设备运行完成（main_pwm_now=main_set_pwm_off）
+	7：设备运行结束（main_pwm_now返回1000处）
+    * */
+    private int status = 1; // main_mod: 1-7
     private String Now = "@RUN_Now!";
     private String Ready = "@Set_Mod3!";
     private String Start = "@Set_Mod5!";
@@ -128,12 +140,58 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 connect();
                 break;
             case R.id.btn_ready:
-                Toast.makeText(getApplicationContext(), "准备", Toast.LENGTH_SHORT).show();
-                toReady();
+                switch (status) {
+                    case 1:
+                        Toast.makeText(getApplicationContext(), "请等待初始化完成", Toast.LENGTH_SHORT).show();
+                        break;
+                    case 2:
+                        Toast.makeText(getApplicationContext(), "开始准备", Toast.LENGTH_SHORT).show();
+                        toReady();
+                        break;
+                    case 3:
+                        Toast.makeText(getApplicationContext(), "设备准备中", Toast.LENGTH_SHORT).show();
+                        break;
+                    case 4:
+                        Toast.makeText(getApplicationContext(), "设备准备完成", Toast.LENGTH_SHORT).show();
+                        break;
+                    case 5:
+                        Toast.makeText(getApplicationContext(), "设备运行中", Toast.LENGTH_SHORT).show();
+                        break;
+                    case 6:
+                        Toast.makeText(getApplicationContext(), "设备运行完成", Toast.LENGTH_SHORT).show();
+                        break;
+                    case 7:
+                        Toast.makeText(getApplicationContext(), "设备运行结束", Toast.LENGTH_SHORT).show();
+                        break;
+                }
+
                 break;
             case R.id.btn_start:
-                Toast.makeText(getApplicationContext(), "运行", Toast.LENGTH_SHORT).show();
-                toStart();
+                switch (status) {
+                    case 1:
+                        Toast.makeText(getApplicationContext(), "请等待初始化完成", Toast.LENGTH_SHORT).show();
+                        break;
+                    case 2:
+                        Toast.makeText(getApplicationContext(), "设备初始化完成", Toast.LENGTH_SHORT).show();
+                        break;
+                    case 3:
+                        Toast.makeText(getApplicationContext(), "设备准备中", Toast.LENGTH_SHORT).show();
+                        break;
+                    case 4:
+                        Toast.makeText(getApplicationContext(), "开始运行", Toast.LENGTH_SHORT).show();
+                        toStart();
+                        break;
+                    case 5:
+                        Toast.makeText(getApplicationContext(), "设备运行中", Toast.LENGTH_SHORT).show();
+                        break;
+                    case 6:
+                        Toast.makeText(getApplicationContext(), "设备运行完成", Toast.LENGTH_SHORT).show();
+                        break;
+                    case 7:
+                        Toast.makeText(getApplicationContext(), "设备运行结束", Toast.LENGTH_SHORT).show();
+                        break;
+                }
+
                 break;
             case R.id.btn_test:
                 startActivity(new Intent(MainActivity.this, TestActivity.class));
@@ -284,7 +342,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         @Override
         public void handleMessage(Message msg) {
-            System.out.println(msg);
             if (mActivity.get() == null) {
                 return;
             }
@@ -295,20 +352,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     String connectedMsg = msg.getData().getString("connectMsg");//接受msg传递过来的参数
                     Toast.makeText(activity, connectedMsg, Toast.LENGTH_LONG).show();
                     tv_con.setText("测试连接");
+
+                    if (connectedMsg.equals("连接成功")) {
+                        // 开始循环获取当前状态
+                        getNowLoop();
+                    }
                     break;
                 case 1:
                     String readyMsg = msg.getData().getString("readyMsg");//接受msg传递过来的参数
                     Toast.makeText(activity, readyMsg, Toast.LENGTH_SHORT).show();
+
                     break;
                 case 2:
                     String startMsg = msg.getData().getString("startMsg");//接受msg传递过来的参数
                     Toast.makeText(activity, startMsg, Toast.LENGTH_SHORT).show();
-
-                    getNowLoop();
-
                     break;
 
-                case 3:
+                case 3: // 当前状态
                     String receivedMsg = msg.getData().getString("nowMsg");//接受msg传递过来的参数
                     Log.d("abc", "receivedMsg:" + receivedMsg);
                     int[] formatedMsg = formatTheMsg(receivedMsg.replace("{", "").replace("}", ""));
@@ -316,8 +376,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     newVal = (float) (formatedMsg[2] - formatedMsg[3]) / (float) (formatedMsg[4] - formatedMsg[3]) * 100;
                     activity.waveView.setProgressNum(oldVal, newVal, 1000);
                     oldVal = newVal;
+                    tv_ready.setText("准备值: " + formatedMsg[3]);
+                    tv_now.setText("当前值: "+ formatedMsg[2]);
+                    tv_close.setText("结束值: " + formatedMsg[4]);
 
-                    Toast.makeText(activity, Arrays.toString(formatedMsg), Toast.LENGTH_SHORT).show();
+                    // 处理main_mod
+                    status = formatedMsg[0];
+
+                    Log.d("abc", "status:" + status);
+                    if (status == 6 || status == 7) {
+                        Log.d("abc", "handleMessage: 移除循环");
+                        timer.cancel();
+                    }
                     break;
             }
         }
@@ -356,7 +426,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     try {
                         socket = new Socket(HOST, PORT);
                         output = socket.getOutputStream();
-//            output.write((Now + "\n").getBytes("utf-8"));// 把msg信息写入输出流中
+                        // output.write((Now + "\n").getBytes("utf-8"));// 把msg信息写入输出流中
                         output.write((Now).getBytes("utf-8"));// 把msg信息写入输出流中
                         output.flush();
 
@@ -380,10 +450,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                     } catch (IOException e) {
                         e.printStackTrace();
+                        timer.cancel();
                     }
                 }
             });
         }
+    }
+
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if(keyCode==KeyEvent.KEYCODE_BACK && event.getAction()== KeyEvent.ACTION_DOWN){
+            if (System.currentTimeMillis()-firstTime>2000){
+                Toast.makeText(MainActivity.this,"再按一次退出程序",Toast.LENGTH_SHORT).show();
+                firstTime=System.currentTimeMillis();
+            }else{
+                finish();
+                System.exit(0);
+            }
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
     }
 
 }
