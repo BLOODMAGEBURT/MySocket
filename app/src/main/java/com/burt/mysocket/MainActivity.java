@@ -30,7 +30,7 @@ import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
-    private static final String HOST = "192.168.2.1";//主机地址
+    private static final String HOST = "192.168.4.1";//主机地址
     private static final int PORT = 2222;//端口号
     // 为了方便展示,此处直接采用线程池进行线程管理,而没有一个个开线程
     private ExecutorService mThreadPool;
