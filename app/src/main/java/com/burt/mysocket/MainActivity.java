@@ -200,32 +200,35 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void connect() {
-        mThreadPool.execute(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    socket = new Socket();
-                    SocketAddress socAddress = new InetSocketAddress(HOST, PORT);
-                    socket.connect(socAddress, 3300);    //连接超时时间3秒3
-                    Message msg = handler.obtainMessage();
-                    msg.what = 0;
-                    Bundle bundle = new Bundle();
-                    bundle.putString("connectMsg", "连接成功");  //往Bundle中存放数据
-                    msg.setData(bundle);//mes利用Bundle传递数据
-                    handler.sendMessage(msg);
+//        mThreadPool.execute(new Runnable() {
+//            @Override
+//            public void run() {
+//                try {
+//                    socket = new Socket();
+//                    SocketAddress socAddress = new InetSocketAddress(HOST, PORT);
+//                    socket.connect(socAddress, 3300);    //连接超时时间3秒3
+//                    Message msg = handler.obtainMessage();
+//                    msg.what = 0;
+//                    Bundle bundle = new Bundle();
+//                    bundle.putString("connectMsg", "连接成功");  //往Bundle中存放数据
+//                    msg.setData(bundle);//mes利用Bundle传递数据
+//                    handler.sendMessage(msg);
+//
+//                    socket.close();
+//                } catch (IOException e) {
+//                    Message msg = handler.obtainMessage();
+//                    msg.what = 0;
+//                    Bundle bundle = new Bundle();
+//                    bundle.putString("connectMsg", "连接失败，请连接正确的WIFI");  //往Bundle中存放数据
+//                    msg.setData(bundle);//mes利用Bundle传递数据
+//                    handler.sendMessage(msg);
+//                    e.printStackTrace();
+//                }
+//            }
+//        });
+        startActivity(new Intent(MainActivity.this, Main2Activity.class));
 
-                    socket.close();
-                } catch (IOException e) {
-                    Message msg = handler.obtainMessage();
-                    msg.what = 0;
-                    Bundle bundle = new Bundle();
-                    bundle.putString("connectMsg", "连接失败，请连接正确的WIFI");  //往Bundle中存放数据
-                    msg.setData(bundle);//mes利用Bundle传递数据
-                    handler.sendMessage(msg);
-                    e.printStackTrace();
-                }
-            }
-        });
+
     }
 
     private void toReady() {
